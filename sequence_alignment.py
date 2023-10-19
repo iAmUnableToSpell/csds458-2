@@ -9,6 +9,8 @@ class sequence_alignment:
         self.mismatch_score = _mismatch_score
         self.local = _local
         self.T = self.init_matrix(len(self.s1), len(self.s2))
+        self.num_paths = np.zeros(self.T.shape) -1
+        self.paths = np.zeros(self.T.shape, dtype=list)
 
     def init_matrix(self, n: int, m: int):
         # returns an n x m matrix with [:,0] and [0,:] initialized to reflect score_gap
@@ -112,6 +114,8 @@ class sequence_alignment:
         # recrusively gets the number of optimal alignments
         if (self.local and self.T[i, j] == 0) or (i==0) or (j==0):
             return 1
+        if self.num_paths[i,j] != -1:
+            return self.num_paths[i,j]
         alignments = 0
         if self.s1[i-1] == self.s2[j-1]:
             alignments += self.get_num_paths(i - 1, j - 1)
@@ -123,5 +127,34 @@ class sequence_alignment:
             alignments += self.get_num_paths(i - 1, j)
         return alignments
 
+    def get_all_sequences(self, i,j):
+        # returns an array of tuples, each one holding two strings (char arrays) that represents an alignment
+        alignments = []
+        if (i == 0) or (j == 0):
+            return [([''],[''])]
+        # for each potential move, check if its valid and if so get the path from that location
+        # append the correct value for T[i,j] to that path, add the path to a list of all paths to (i,j) and return it
+        if self.T[i - 1, j - 1] + self.mismatch_score == self.T[i, j] or self.s1[i-1] == self.s2[j-1]:
+            # a match or missmatch valid
+            valid_seq = self.get_all_sequences(i - 1, j - 1)
+            for path in valid_seq:
+                path[0].append(self.s1[i-1])
+                path[1].append(self.s2[j-1])
+            alignments.extend(valid_seq)
+        if self.T[i, j - 1] + self.gap_score == self.T[i, j]:
+            # a gap in s1
+            valid_seq = (self.get_all_sequences(i, j - 1))
+            for path in valid_seq:
+                path[0].append('-')
+                path[1].append(self.s2[j-1])
+            alignments.extend(valid_seq)
+        if self.T[i - 1, j] + self.gap_score == self.T[i, j]:
+            # a gap in s1
+            valid_seq = (self.get_all_sequences(i, j - 1))
+            for path in valid_seq:
+                path[0].append(self.s1[i-1])
+                path[1].append('-')
+            alignments.extend(valid_seq)
+        return alignments
 
 

@@ -22,6 +22,11 @@ except Exception as e:
     s1 = ''.join(random.choices(alphabet, k=10))
     s2 = ''.join(random.choices(alphabet, k=(10 if isglobal else 20)))
 
+try:
+    dbgstr = lines[4]
+    is_debug = dbgstr == 'debug'
+except Exception as e:
+    is_debug = False
 # create sequence_alignment object
 seq = sequence_alignment(s1, s2, int(score_gap), int(score_match), int(score_mismatch), not isglobal)
 
@@ -34,23 +39,31 @@ alignments = np.where(seq.T == seq.T.max())
 # count number of ideal alignments (alignments with maximum score)
 num_alignments = np.count_nonzero(seq.T == seq.T.max())
 
+if is_debug:
+    print(seq.T)
 if isglobal:
     # get result strings from backtracking from the end of both s1 and s2
     a, b = seq.backtracking(len(s1), len(s2))
     # print results
-    print(f"Globally Optimal Sequence ({int(seq.T[len(s1), len(s2)])}) at: [{len(s1)}, {len(s2)}]")
+    print(f"Globally optimal sequence ({int(seq.T[len(s1), len(s2)])}) ending at [{len(s1)}, {len(s2)}]: ")
+    print(f"Equally scoring solutions: {seq.get_num_paths(len(s1), len(s2)) - 1}")
     print("".join(a))
     print("".join(b))
 else:
     for i in range(len(alignments[0])):
         # print results for all alignments
-        print(f"Optimal Sequence ({int(seq.T.max())}) at: [{alignments[0][i]}, {alignments[1][i]}]")
-        a, b = seq.backtracking(alignments[0][i], alignments[1][i])
-        print("\t" + "".join(a))
-        print("\t" + "".join(b))
-    print(f"{num_alignments} Optimal Alignment{'' if num_alignments == 1 else 's'}")
+        paths = seq.get_all_sequences(alignments[0][i], alignments[1][i])
+        print(f"{len(paths)} Optimal sequence{'s' if len(paths) > 1 else ''} ending at: [{alignments[0][i]}, {alignments[1][i]}]")
+        print(f"With score: {int(seq.T.max())}")
+        for alignment in paths:
+            print("__________________")
+            print("\t" + "".join(alignment[0]))
+            print("\t" + "".join(alignment[1]))
+        print("__________________")
 
+    # print(f"{num_alignments} Optimal alignment{'' if num_alignments == 1 else 's'}")
 
+    # print(f"num paths {seq.get_num_paths(len(s1), len(s2))}")
 
 
 
