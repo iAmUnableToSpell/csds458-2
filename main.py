@@ -43,16 +43,24 @@ if is_debug:
     print(seq.T)
 if isglobal:
     # get result strings from backtracking from the end of both s1 and s2
-    a, b = seq.backtracking(len(s1), len(s2))
+    #a, b = seq.backtracking(len(s1), len(s2))
+    paths = seq.get_all_alginments(len(s1), len(s2))
+    print(f"found {len(paths)} path{'s' if len(paths) > 1 else ''} with score {seq.T[len(s1), len(s2)]}")
+    for alignment in paths:
+        print(f"\t{'_'* (len(paths[0][0]) - 1)}")
+        print("\t" + "".join(alignment[0]))
+        print("\t" + "".join(alignment[1]))
+    print(f"\t{'_'* (len(paths[0][0]) - 1)}")
     # print results
-    print(f"Globally optimal sequence ({int(seq.T[len(s1), len(s2)])}) ending at [{len(s1)}, {len(s2)}]: ")
-    print(f"Equally scoring solutions: {seq.get_num_paths(len(s1), len(s2)) - 1}")
-    print("".join(a))
-    print("".join(b))
+    # print(f"Globally optimal sequence ({int(seq.T[len(s1), len(s2)])}) ending at [{len(s1)}, {len(s2)}]: ")
+    #     # print(f"Equally scoring solutions: {seq.get_num_paths(len(s1), len(s2)) - 1}")
+    #     # print("".join(a))
+    #     # print("".join(b))
 else:
+    print(alignments)
     for i in range(len(alignments[0])):
         # print results for all alignments
-        paths = seq.get_all_sequences(alignments[0][i], alignments[1][i])
+        paths = seq.get_all_alginments(alignments[0][i], alignments[1][i])
         print(f"{len(paths)} Optimal sequence{'s' if len(paths) > 1 else ''} ending at: [{alignments[0][i]}, {alignments[1][i]}]")
         print(f"With score: {int(seq.T.max())}")
         for alignment in paths:
